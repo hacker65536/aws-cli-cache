@@ -1,5 +1,12 @@
 # AWS CLI Cache
 
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/hacker65536/aws-cli-cache/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Shell](https://img.shields.io/badge/shell-bash%204.0%2B-orange.svg)](https://www.gnu.org/software/bash/)
+[![Tests](https://img.shields.io/badge/tests-30%2F30%20passing-brightgreen.svg)](test_cache.sh)
+[![Google Style](https://img.shields.io/badge/style-Google%20Shell%20Guide-yellow.svg)](https://google.github.io/styleguide/shellguide.html)
+[![Performance](https://img.shields.io/badge/performance-2.2x%20faster-success.svg)](#パフォーマンス)
+
 AWS CLIのAPIコール回数を削減するためのキャッシュレイヤー。TTLベースの有効期限管理、LRU削除、整合性検証をサポートし、本番環境での使用に最適化されています。
 
 **バージョン**: 3.0.0  
