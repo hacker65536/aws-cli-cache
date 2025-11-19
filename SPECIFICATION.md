@@ -16,21 +16,17 @@ AWS CLI Cache は、AWS CLIのAPIコール回数を削減するためのキャ�
 6層の論理的な階層構造でキャッシュを管理：
 
 ```
-{cache_dir}/
-  └── {profile}/              # 1. AWS Profile
-      └── {service}/          # 2. Service (rds, ec2, s3, etc.)
-          └── {region}/       # 3. Region (us-east-1, ap-northeast-1, etc.)
-              └── {action}/   # 4. Action (describe-db-clusters, etc.)
-                  └── {params_hash}/  # 5. Parameters Hash (16 chars)
-                      └── {format}/   # 6. Output Format (json, text, etc.)
-                          └── {cache_key}_{ttl}_{timestamp}_{pid}.cache
+{profile}/{service}/{region}/{action}/{params_hash}/{format}/
+  └── {hash}_{ttl}_{timestamp}_{pid}.cache
 ```
 
 **ファイル名形式**: `{hash}_{ttl}_{timestamp}_{pid}.cache`
-- `hash`: SHA256ハッシュ（64文字）
-- `ttl`: Time To Live（秒）
-- `timestamp`: Unix timestamp
-- `pid`: Process ID（並行実行対策）
+- `hash`: SHA256ハッシュ（64文字）- データの整合性検証用
+- `ttl`: Time To Live（秒）- 有効期限
+- `timestamp`: Unix timestamp - 作成時刻
+- `pid`: Process ID - 並行実行時の衝突回避
+
+詳細な階層構造図は [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) を参照してください。
 
 ### 2. TTLベースの有効期限管理
 
@@ -89,75 +85,17 @@ Write系操作は自動的にキャッシュから除外：
 
 ---
 
-## アーキテクチャ
+## アーキテクチャ概要
 
-### コンポーネント構成
+詳細なアーキテクチャ図、データフロー、コンポーネント構成については **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** を参照してください。
 
-```
-┌─────────────────────────────────────────┐
-│         aws_cached (Main Function)      │
-│  - オプション解析                        │
-│  - キャッシュ可否判定                    │
-│  - キャッシュヒット/ミス処理             │
-└─────────────────────────────────────────┘
-                    │
-        ┌───────────┴───────────┐
-        │                       │
-┌───────▼──────┐      ┌────────▼────────┐
-│ Cache Read   │      │  Cache Write    │
-│ - 検索       │      │  - サイズ制限   │
-│ - 有効性確認 │      │  - 整合性検証   │
-│ - 整合性検証 │      │  - アトミック   │
-└──────────────┘      └─────────────────┘
-        │                       │
-        └───────────┬───────────┘
-                    │
-        ┌───────────▼───────────┐
-        │   File System         │
-        │  - 階層構造           │
-        │  - LRU削除            │
-        └───────────────────────┘
-```
+### 主要な設計原則
 
-### データフロー
-
-```
-1. コマンド実行
-   aws_cached rds describe-db-clusters
-        │
-        ▼
-2. パラメータ抽出
-   - profile, service, region, action
-   - params_hash, output_format
-        │
-        ▼
-3. キャッシュ可否判定
-   is_cacheable(service, action)
-        │
-   ┌────┴────┐
-   │         │
-   NO       YES
-   │         │
-   │         ▼
-   │    4. キャッシュ検索
-   │       find_valid_cache_file()
-   │         │
-   │    ┌────┴────┐
-   │    │         │
-   │   HIT      MISS
-   │    │         │
-   │    ▼         ▼
-   │  5a. 読込  5b. AWS CLI実行
-   │    │         │
-   │    │         ▼
-   │    │    6. キャッシュ保存
-   │    │       write_cache()
-   │    │         │
-   └────┴─────────┘
-        │
-        ▼
-7. 結果出力
-```
+1. **階層化**: 6層の論理的な構造（profile/service/region/action/params_hash/format）
+2. **並行性**: アトミック操作とPIDベース命名による安全な並行実行
+3. **効率性**: LRU削除とメモリキャッシュによる最適化
+4. **安全性**: 整合性検証とエラーハンドリング
+5. **拡張性**: プラグイン可能な除外ルール
 
 ---
 

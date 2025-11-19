@@ -239,49 +239,14 @@ wait
 
 ## アーキテクチャ
 
-### キャッシュ構造
+6層の階層構造でキャッシュを管理し、TTLベースの有効期限とLRU削除を実装しています。
 
 ```
-~/.cache/aws-cli/
-  └── {profile}/              # 1. AWS Profile
-      └── {service}/          # 2. Service (rds, ec2, s3, etc.)
-          └── {region}/       # 3. Region
-              └── {action}/   # 4. Action
-                  └── {params_hash}/  # 5. Parameters Hash
-                      └── {format}/   # 6. Output Format
-                          └── {hash}_{ttl}_{timestamp}_{pid}.cache
+{profile}/{service}/{region}/{action}/{params_hash}/{format}/
+  └── {hash}_{ttl}_{timestamp}_{pid}.cache
 ```
 
-### データフロー
-
-```
-コマンド実行
-    ↓
-パラメータ抽出
-    ↓
-キャッシュ可否判定
-    ↓
-┌───────┴───────┐
-│               │
-NO             YES
-│               │
-│               ↓
-│          キャッシュ検索
-│               │
-│          ┌────┴────┐
-│          │         │
-│         HIT      MISS
-│          │         │
-│          ↓         ↓
-│        読込    AWS CLI実行
-│          │         │
-│          │         ↓
-│          │    キャッシュ保存
-│          │         │
-└──────────┴─────────┘
-    ↓
-結果出力
-```
+詳細なアーキテクチャ図とデータフローについては **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** を参照してください。
 
 ---
 
