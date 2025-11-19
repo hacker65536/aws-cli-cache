@@ -1,0 +1,159 @@
+# AWS CLI Cache - .gitignore
+
+# ===========================
+# キャッシュファイル
+# ===========================
+
+# テスト用キャッシュディレクトリ
+/tmp/aws_cache_test_*/
+/tmp/test_*/
+.aws-cache/
+
+# 実際のキャッシュディレクトリ（通常はホームディレクトリ配下だが念のため）
+.cache/
+*.cache
+*.sha256
+
+# 統計ファイル
+.stats
+
+# ===========================
+# OS固有ファイル
+# ===========================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# macOS Thumbnails
+Thumbs.db
+
+# macOS Spotlight
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.directory
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ===========================
+# エディタ・IDE
+# ===========================
+
+# VSCode
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+.*.sw?
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===========================
+# 一時ファイル
+# ===========================
+
+# 一時ファイル
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# ログファイル
+*.log
+
+# Bashの一時ファイル
+.bash_history
+
+# ===========================
+# テスト関連
+# ===========================
+
+# テスト結果
+test-results/
+coverage/
+.nyc_output/
+
+# ===========================
+# ビルド・パッケージ
+# ===========================
+
+# 圧縮ファイル
+*.tar.gz
+*.zip
+*.tgz
+*.rar
+
+# ===========================
+# プロジェクト固有
+# ===========================
+
+# カスタム設定ファイル（ユーザー固有）
+.env
+.env.local
+.env.*.local
+
+# カスタムキャッシュ除外設定（ユーザー固有の場合）
+# cache-exclude
+
+# デバッグ用の一時スクリプト
+debug_*.sh
+test_*.tmp
+
+# ===========================
+# ドキュメント生成
+# ===========================
+
+# 生成されたドキュメント（もしあれば）
+# docs/generated/
+
+# ===========================
+# その他
+# ===========================
+
+# Node modules（もし将来使用する場合）
+node_modules/
+
+# Python（もし将来使用する場合）
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+ENV/
+
+# ===========================
+# 保持するファイル
+# ===========================
+
+# 以下は除外しない（明示的に保持）
+!.gitignore
+!.vscode/
+!docs/
