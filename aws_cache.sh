@@ -122,6 +122,15 @@ declare -a DEFAULT_EXCLUDE_RULES=(
     "sns:delete-topic"
     "sns:subscribe"
     "sns:unsubscribe"
+    
+    # Athena
+    "athena:start-query-execution"
+    "athena:stop-query-execution"
+    "athena:create-named-query"
+    "athena:delete-named-query"
+    "athena:create-work-group"
+    "athena:delete-work-group"
+    "athena:update-work-group"
 )
 
 # キャッシュ除外ルールのキャッシュ（パフォーマンス最適化）
@@ -242,9 +251,23 @@ extract_profile() {
 
 # サービス名を抽出（AWS CLIコマンドから）
 extract_service() {
-    local cmd="$*"
-    # aws <service> <operation> ... の形式から service を抽出
-    echo "$cmd" | awk '{print $1}'
+    # グローバルオプション（--profile, --region, --output等）をスキップして
+    # 最初のサービス名を取得
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --profile|--region|--output|--endpoint-url|--no-verify-ssl|--no-paginate|--query|--cli-input-json|--cli-input-yaml|--generate-cli-skeleton)
+                shift 2  # オプションと値をスキップ
+                ;;
+            --*)
+                shift  # その他のフラグオプションをスキップ
+                ;;
+            *)
+                # サービス名を見つけた
+                echo "$1"
+                return
+                ;;
+        esac
+    done
 }
 
 # リージョンを抽出
@@ -260,10 +283,36 @@ extract_region() {
 
 # アクション（操作）を抽出
 extract_action() {
-    local cmd="$*"
     local service="$1"
-    # aws <service> <action> ... の形式から action を抽出
-    echo "$cmd" | awk '{print $2}'
+    shift
+    
+    # サービス名の後の最初の非オプション引数を取得
+    local found_service=false
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --profile|--region|--output|--endpoint-url|--no-verify-ssl|--no-paginate|--query|--cli-input-json|--cli-input-yaml|--generate-cli-skeleton)
+                shift 2  # オプションと値をスキップ
+                ;;
+            --*)
+                shift  # その他のフラグオプションをスキップ
+                ;;
+            *)
+                if [[ "$found_service" == false ]]; then
+                    # サービス名をスキップ
+                    if [[ "$1" == "$service" ]]; then
+                        found_service=true
+                        shift
+                    else
+                        shift
+                    fi
+                else
+                    # アクション名を見つけた
+                    echo "$1"
+                    return
+                fi
+                ;;
+        esac
+    done
 }
 
 # パラメータハッシュを生成（--region, --profile, --output を除く、--queryを含む）
@@ -279,7 +328,8 @@ generate_params_hash() {
         xargs)
     
     # ハッシュ化（短縮版: 最初の16文字、Gitコミットハッシュと同じ長さ）
-    echo -n "$params" | shasum -a 256 | cut -c1-16
+    # ファイル名として安全な文字のみを使用
+    echo -n "$params" | shasum -a 256 | cut -c1-16 | tr -d '\n' | sed 's/[^a-zA-Z0-9]/_/g'
 }
 
 # 出力形式を抽出
