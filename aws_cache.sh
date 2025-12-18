@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # AWS CLI Cache Layer
-# Version: 3.0.0
+# Version: 3.1.1
 #
 # Reduces AWS API call frequency by caching CLI responses.
 # Supports TTL-based expiration, LRU eviction, and integrity verification.
@@ -397,9 +397,9 @@ get_cache_file() {
     # ディレクトリ作成（最適化: -p は冪等なので毎回実行しても安全、エラー処理簡略化）
     mkdir -p "$cache_path" 2>/dev/null || true
     
-    # ファイル名: hash_ttl_timestamp_pid.cache（並行実行対策でPIDを追加）
-    local timestamp=$(date +%s)
-    echo "$cache_path/${cache_key}_${ttl}_${timestamp}_$$.cache"
+    # ファイル名: hash_ttl_pid.cache（並行実行対策でPIDを追加）
+    # タイムスタンプを除外してキャッシュヒットを確実にする
+    echo "$cache_path/${cache_key}_${ttl}_$$.cache"
 }
 
 # 既存のキャッシュファイルを検索（TTL考慮）
@@ -438,17 +438,26 @@ find_valid_cache_file() {
     
     # ファイル名から TTL と timestamp を抽出
     local filename=$(basename "$latest_file")
-    # hash_ttl_timestamp_pid.cache の形式
-    # 正規表現で最後の3つのフィールドを抽出
-    if [[ "$filename" =~ _([0-9]+)_([0-9]+)_([0-9]+)\.cache$ ]]; then
+    # hash_ttl_pid.cache の形式
+    # 正規表現で最後の2つのフィールドを抽出
+    if [[ "$filename" =~ _([0-9]+)_([0-9]+)\.cache$ ]]; then
         local file_ttl="${BASH_REMATCH[1]}"
-        local file_timestamp="${BASH_REMATCH[2]}"
     else
         return 1
     fi
     
-    # 有効期限チェック: timestamp + ttl > current_time
-    local expiry_time=$((file_timestamp + file_ttl))
+    # ファイルの更新時刻を取得（macOS互換）
+    local file_mtime
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        file_mtime=$(stat -f %m "$latest_file" 2>/dev/null)
+    else
+        file_mtime=$(stat -c %Y "$latest_file" 2>/dev/null)
+    fi
+    
+    [[ -z "$file_mtime" ]] && return 1
+    
+    # 有効期限チェック: file_mtime + ttl > current_time
+    local expiry_time=$((file_mtime + file_ttl))
     
     if [[ ${expiry_time} -gt ${current_time} ]]; then
         # 有効なキャッシュが見つかった
@@ -468,22 +477,31 @@ is_cache_valid() {
         return 1
     fi
     
-    # ファイル名から TTL と timestamp を抽出
+    # ファイル名から TTL を抽出
     local filename=$(basename "$cache_file")
-    # hash_ttl_timestamp_pid.cache の形式
-    # 正規表現で最後の3つのフィールドを抽出
-    if [[ "$filename" =~ _([0-9]+)_([0-9]+)_([0-9]+)\.cache$ ]]; then
+    # hash_ttl_pid.cache の形式
+    # 正規表現で最後の2つのフィールドを抽出
+    if [[ "$filename" =~ _([0-9]+)_([0-9]+)\.cache$ ]]; then
         local file_ttl="${BASH_REMATCH[1]}"
-        local file_timestamp="${BASH_REMATCH[2]}"
     else
         return 1
     fi
     
+    # ファイルの更新時刻を取得（macOS互換）
+    local file_mtime
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        file_mtime=$(stat -f %m "$cache_file" 2>/dev/null)
+    else
+        file_mtime=$(stat -c %Y "$cache_file" 2>/dev/null)
+    fi
+    
+    [[ -z "$file_mtime" ]] && return 1
+    
     # 現在時刻
     local current_time=$(date +%s)
     
-    # 有効期限チェック: timestamp + ttl > current_time
-    local expiry_time=$((file_timestamp + file_ttl))
+    # 有効期限チェック: file_mtime + ttl > current_time
+    local expiry_time=$((file_mtime + file_ttl))
     
     if [[ ${expiry_time} -gt ${current_time} ]]; then
         return 0
@@ -707,13 +725,18 @@ aws_cached() {
         if [[ "$verbose" == true ]]; then
             echo "[CACHE] Hit: $cache_file" >&2
             local filename=$(basename "$cache_file")
-            # 正規表現で最後の3つのフィールドを抽出
-            if [[ "$filename" =~ _([0-9]+)_([0-9]+)_([0-9]+)\.cache$ ]]; then
+            # 正規表現で最後の2つのフィールドを抽出
+            if [[ "$filename" =~ _([0-9]+)_([0-9]+)\.cache$ ]]; then
                 local file_ttl="${BASH_REMATCH[1]}"
-                local file_timestamp="${BASH_REMATCH[2]}"
-                # date +%s はverbose時のみ実行（最適化: 2-5ms/回削減）
+                # ファイルの更新時刻を取得
+                local file_mtime
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    file_mtime=$(stat -f %m "$cache_file" 2>/dev/null)
+                else
+                    file_mtime=$(stat -c %Y "$cache_file" 2>/dev/null)
+                fi
                 local current_time=$(date +%s)
-                local age=$((current_time - file_timestamp))
+                local age=$((current_time - file_mtime))
                 local remaining=$((file_ttl - age))
                 echo "[CACHE] Age: ${age}s, Remaining: ${remaining}s, TTL: ${file_ttl}s" >&2
             fi
