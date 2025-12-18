@@ -1,29 +1,31 @@
 # AWS CLI Cache
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/hacker65536/aws-cli-cache/releases)
+[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](https://github.com/hacker65536/aws-cli-cache/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Shell](https://img.shields.io/badge/shell-bash%204.0%2B-orange.svg)](https://www.gnu.org/software/bash/)
 [![Tests](https://img.shields.io/badge/tests-30%2F30%20passing-brightgreen.svg)](test_cache.sh)
 [![Google Style](https://img.shields.io/badge/style-Google%20Shell%20Guide-yellow.svg)](https://google.github.io/styleguide/shellguide.html)
 [![Performance](https://img.shields.io/badge/performance-2.2x%20faster-success.svg)](#パフォーマンス)
 
-AWS CLIのAPIコール回数を削減するためのキャッシュレイヤー。TTLベースの有効期限管理、LRU削除、整合性検証をサポートし、本番環境での使用に最適化されています。
+AWS CLI の API コール回数を削減するためのキャッシュレイヤー。TTL ベースの有効期限管理、LRU 削除、整合性検証をサポートし、本番環境での使用に最適化されています。
 
-**バージョン**: 3.0.0  
-**最終更新**: 2025年11月19日
+**バージョン**: 3.1.1  
+**最終更新**: 2025 年 12 月 18 日
+
+> **🔴 重要**: v3.1.1 でキャッシュヒット率 0%問題を修正しました。v3.0.0 以前をご利用の方は、できるだけ早くアップグレードしてください。詳細は[リリースノート](https://github.com/hacker65536/aws-cli-cache/releases/tag/v3.1.1)をご確認ください。
 
 ---
 
 ## 特徴
 
-- ✅ **高速化**: AWS CLI実行を約2.2倍高速化
+- ✅ **高速化**: AWS CLI 実行を約 2.2 倍高速化
 - ✅ **階層化キャッシュ**: プロファイル/サービス/リージョン単位で管理
-- ✅ **TTL管理**: 柔軟な有効期限設定
-- ✅ **LRU削除**: 自動的にサイズ制限を管理
+- ✅ **TTL 管理**: 柔軟な有効期限設定
+- ✅ **LRU 削除**: 自動的にサイズ制限を管理
 - ✅ **並行実行対応**: 複数プロセスでの同時実行が安全
-- ✅ **整合性検証**: SHA256ハッシュによる改ざん検出
+- ✅ **整合性検証**: SHA256 ハッシュによる改ざん検出
 - ✅ **統計情報**: キャッシュヒット率の分析
-- ✅ **除外ルール**: Write系操作は自動除外
+- ✅ **除外ルール**: Write 系操作は自動除外
 
 ---
 
@@ -139,13 +141,15 @@ export AWS_CACHE_STATS=true
 ### 主要ドキュメント
 
 - **[SPECIFICATION.md](SPECIFICATION.md)** - 仕様全体の説明
+
   - アーキテクチャとデータフロー
   - 主要機能の詳細
-  - 環境変数とCLI仕様
+  - 環境変数と CLI 仕様
   - パフォーマンス特性
   - セキュリティと互換性
 
 - **[USER_GUIDE.md](USER_GUIDE.md)** - 利用方法ガイド
+
   - クイックスタート
   - 基本機能とオプション
   - 実用例
@@ -161,7 +165,7 @@ export AWS_CACHE_STATS=true
 ### 詳細ドキュメント（docs/）
 
 - **[IMPROVEMENTS.md](docs/IMPROVEMENTS.md)** - 初期改善内容
-- **[IMPROVEMENTS_V2.md](docs/IMPROVEMENTS_V2.md)** - v2.0改善内容
+- **[IMPROVEMENTS_V2.md](docs/IMPROVEMENTS_V2.md)** - v2.0 改善内容
 - **[NAMING_REVIEW.md](docs/NAMING_REVIEW.md)** - 命名規則レビュー
 - **[NAMING_IMPROVEMENTS.md](docs/NAMING_IMPROVEMENTS.md)** - 命名改善実装
 - **[GOOGLE_STYLE_REVIEW.md](docs/GOOGLE_STYLE_REVIEW.md)** - Google Style レビュー
@@ -227,9 +231,9 @@ wait
 
 - Bash 4.0+
 - AWS CLI (v1 or v2)
-- 標準Unixコマンド（find, grep, sed, awk, shasum, du）
+- 標準 Unix コマンド（find, grep, sed, awk, shasum, du）
 
-### 対応OS
+### 対応 OS
 
 - ✅ macOS
 - ✅ Linux
@@ -239,7 +243,7 @@ wait
 
 ## アーキテクチャ
 
-6層の階層構造でキャッシュを管理し、TTLベースの有効期限とLRU削除を実装しています。
+6 層の階層構造でキャッシュを管理し、TTL ベースの有効期限と LRU 削除を実装しています。
 
 ```
 {profile}/{service}/{region}/{action}/{params_hash}/{format}/
@@ -253,7 +257,7 @@ wait
 ## コード品質
 
 - ✅ **Google Shell Style Guide**: 完全準拠（96/100）
-- ✅ **テストカバレッジ**: 100%（30/30テスト合格）
+- ✅ **テストカバレッジ**: 100%（30/30 テスト合格）
 - ✅ **Shellcheck**: 警告最小化
 - ✅ **XDG Base Directory**: 準拠
 
@@ -347,14 +351,14 @@ export AWS_CACHE_TTL=7200  # 2時間に延長
 **Q: キャッシュはどこに保存されますか？**  
 A: デフォルトでは `~/.cache/aws-cli` に保存されます。
 
-**Q: Write操作もキャッシュされますか？**  
-A: いいえ。Create/Update/Delete系の操作は自動的に除外されます。
+**Q: Write 操作もキャッシュされますか？**  
+A: いいえ。Create/Update/Delete 系の操作は自動的に除外されます。
 
 **Q: 複数のプロセスで同時に使用できますか？**  
 A: はい。並行実行に対応しています。
 
-**Q: AWS CLI v1とv2の両方に対応していますか？**  
-A: はい。両方に対応していますが、v2を推奨します。
+**Q: AWS CLI v1 と v2 の両方に対応していますか？**  
+A: はい。両方に対応していますが、v2 を推奨します。
 
 ---
 
@@ -366,7 +370,7 @@ A: はい。両方に対応していますが、v2を推奨します。
 
 ## 貢献
 
-Pull Requests歓迎！
+Pull Requests 歓迎！
 
 ---
 
@@ -377,5 +381,5 @@ Pull Requests歓迎！
 ---
 
 **作成者**: Kiro AI Assistant  
-**作成日**: 2025年11月19日  
-**バージョン**: 3.0.0
+**作成日**: 2025 年 11 月 19 日  
+**バージョン**: 3.1.1
