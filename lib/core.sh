@@ -81,6 +81,14 @@ aws_cached() {
         return $?
     fi
     
+    # リージョン解決チェック
+    local region
+    if ! region=$(extract_region "$@"); then
+        [ "$verbose" = true ] && echo "[CACHE] Skip: Region could not be resolved (no cache)" >&2
+        aws "$@"
+        return $?
+    fi
+    
     # 既存の有効なキャッシュを検索
     local cache_file=$(find_valid_cache_file "$ttl" "$@")
     

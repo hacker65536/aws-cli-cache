@@ -8,6 +8,10 @@
 [[ -n "${_AWS_CACHE_EXTRACT_LOADED:-}" ]] && return 0
 readonly _AWS_CACHE_EXTRACT_LOADED=1
 
+# Source dependencies for region resolution
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${_LIB_DIR}/profile_region.sh"
+
 #######################################
 # Extract TTL from cache filename.
 # Parses filename format: {hash}_{ttl}_{pid}.cache
@@ -86,8 +90,12 @@ extract_service() {
 
 #######################################
 # Extract region from command arguments.
-# Globals:
-#   AWS_REGION, AWS_DEFAULT_REGION
+# Uses resolve_region() for full fallback chain:
+#   1. --region option
+#   2. AWS_REGION env var
+#   3. AWS_DEFAULT_REGION env var
+#   4. Profile's region from AWS config
+#   5. "global" as fallback
 # Arguments:
 #   Command line arguments
 # Outputs:
@@ -96,12 +104,7 @@ extract_service() {
 #   0 on success
 #######################################
 extract_region() {
-    local cmd="$*"
-    if echo "$cmd" | grep -q -- "--region"; then
-        echo "$cmd" | grep -o -- "--region [^ ]*" | awk '{print $2}'
-    else
-        echo "${AWS_REGION:-${AWS_DEFAULT_REGION:-global}}"
-    fi
+    resolve_region "$@"
 }
 
 #######################################

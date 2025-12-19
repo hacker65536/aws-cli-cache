@@ -91,6 +91,15 @@ test_extract_service() {
 test_extract_region() {
     echo "--- extract_region ---"
     
+    # Save original env vars
+    local saved_region="${AWS_REGION:-}"
+    local saved_default_region="${AWS_DEFAULT_REGION:-}"
+    local saved_config="${AWS_CONFIG_FILE:-}"
+    
+    # Clear env vars for predictable tests
+    unset AWS_REGION AWS_DEFAULT_REGION 2>/dev/null || true
+    export AWS_CONFIG_FILE="/nonexistent/config"
+    
     local result
     result=$(extract_region "rds describe-db-clusters --region us-west-2")
     assert_equals "us-west-2" "$result" "extracts region from --region"
@@ -100,8 +109,23 @@ test_extract_region() {
     assert_equals "ap-northeast-1" "$result" "uses AWS_REGION when not specified"
     unset AWS_REGION
     
-    result=$(extract_region "rds describe-db-clusters")
-    assert_equals "global" "$result" "defaults to 'global'"
+    # When no region can be resolved, extract_region returns failure
+    if extract_region "rds describe-db-clusters" > /dev/null 2>&1; then
+        ((FAILED++))
+        echo -e "${RED}✗${NC} returns failure when no region found"
+    else
+        ((PASSED++))
+        echo -e "${GREEN}✓${NC} returns failure when no region found"
+    fi
+    
+    # Restore env vars
+    [[ -n "$saved_region" ]] && export AWS_REGION="$saved_region"
+    [[ -n "$saved_default_region" ]] && export AWS_DEFAULT_REGION="$saved_default_region"
+    if [[ -n "$saved_config" ]]; then
+        export AWS_CONFIG_FILE="$saved_config"
+    else
+        unset AWS_CONFIG_FILE 2>/dev/null || true
+    fi
 }
 
 test_extract_action() {
