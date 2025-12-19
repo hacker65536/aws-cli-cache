@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # AWS CLI Cache Layer
-# Version: 3.2.0
+# Version: 4.0.0
 #
 # Reduces AWS API call frequency by caching CLI responses.
 # Supports TTL-based expiration, LRU eviction, and integrity verification.
