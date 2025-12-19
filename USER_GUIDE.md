@@ -1,5 +1,8 @@
 # AWS CLI Cache - 利用ガイド
 
+**バージョン**: 4.0.0  
+**最終更新**: 2025 年 12 月 19 日
+
 ## クイックスタート
 
 ### インストール
@@ -36,7 +39,7 @@ aws rds describe-db-clusters
 
 ## 基本機能
 
-### 1. キャッシュ付きでAWS CLIを実行
+### 1. キャッシュ付きで AWS CLI を実行
 
 ```bash
 # 基本的な使用
@@ -53,8 +56,9 @@ aws_cached --region us-west-2 ec2 describe-instances
 ```
 
 **動作**:
-- 初回実行: AWS APIを呼び出し、結果をキャッシュ
-- 2回目以降: キャッシュから結果を返す（高速）
+
+- 初回実行: AWS API を呼び出し、結果をキャッシュ
+- 2 回目以降: キャッシュから結果を返す（高速）
 
 ---
 
@@ -76,8 +80,9 @@ aws_cached --cache-ttl 86400 s3 ls
 ```
 
 **使用例**:
-- 頻繁に変更されるデータ: 短いTTL（300秒）
-- あまり変更されないデータ: 長いTTL（3600秒以上）
+
+- 頻繁に変更されるデータ: 短い TTL（300 秒）
+- あまり変更されないデータ: 長い TTL（3600 秒以上）
 
 ### --force-refresh
 
@@ -92,6 +97,7 @@ aws_cached --force-refresh --verbose rds describe-db-clusters
 ```
 
 **使用例**:
+
 - データが変更されたことが分かっている場合
 - キャッシュが古くなった可能性がある場合
 
@@ -108,6 +114,7 @@ aws_cached rds create-db-cluster --db-cluster-identifier new-cluster
 ```
 
 **使用例**:
+
 - 一時的にキャッシュを無効化したい場合
 - リアルタイムのデータが必要な場合
 
@@ -128,6 +135,7 @@ aws_cached --verbose rds describe-db-clusters
 ```
 
 **使用例**:
+
 - キャッシュが正しく動作しているか確認
 - パフォーマンスのデバッグ
 
@@ -166,7 +174,7 @@ aws_cached --verbose rds describe-db-clusters
 # Freed space: 1024KB
 ```
 
-**推奨**: cronで定期実行
+**推奨**: cron で定期実行
 
 ```bash
 # 毎日午前3時に実行
@@ -183,10 +191,10 @@ aws_cached --verbose rds describe-db-clusters
 # === AWS CLI Cache Statistics ===
 # Cache Directory: /Users/user/.cache/aws-cli
 # Default TTL: 3600s (60 minutes)
-# 
+#
 # Total cache files: 150
 # Total cache size: 25MB
-# 
+#
 # By Profile:
 #   my-profile: 100 files, 20MB
 #     └─ rds: 50 files, 10MB
@@ -207,17 +215,11 @@ aws_cached --verbose rds describe-db-clusters
 
 # 出力例:
 # === Cache Metrics ===
-# 
+#
 # Total requests: 500
 # Cache hits: 400
 # Cache misses: 100
 # Hit rate: 80%
-# 
-# Last 24 hours:
-#   Requests: 150
-#   Hits: 126
-#   Misses: 24
-#   Hit rate: 84%
 ```
 
 **注意**: `AWS_CACHE_STATS=true` が必要
@@ -230,6 +232,28 @@ aws_cached --verbose rds describe-db-clusters
 
 # treeコマンドがインストールされている場合、視覚的に表示
 # ない場合は、findコマンドで表示
+```
+
+### 動作テスト
+
+```bash
+# キャッシュ機能のテスト
+./aws_cache.sh test
+
+# 出力例:
+# Testing cache functionality...
+#
+# 1. First call (cache miss):
+# [CACHE] Miss: Executing AWS CLI
+# ...
+#
+# 2. Second call (cache hit):
+# [CACHE] Hit: /path/to/cache/file
+# ...
+#
+# 3. Force refresh:
+# [CACHE] Force refresh: deleted /path/to/cache/file
+# ...
 ```
 
 ---
@@ -256,11 +280,15 @@ export AWS_CACHE_STATS=true
 
 # 整合性チェックを有効化（セキュリティ重視）
 export AWS_CACHE_VERIFY=true
+
+# 除外設定ファイル
+export AWS_CACHE_EXCLUDE_CONFIG="$HOME/.config/aws-cli/cache-exclude"
 ```
 
 ### 環境別の推奨設定
 
 #### 開発環境
+
 ```bash
 # 高速化優先、大きめのキャッシュ
 export AWS_CACHE_DIR="$HOME/.cache/aws-cli"
@@ -272,6 +300,7 @@ export AWS_CACHE_STATS=true
 ```
 
 #### 本番環境（CI/CD）
+
 ```bash
 # セキュリティ優先、小さめのキャッシュ
 export AWS_CACHE_DIR="/tmp/aws-cli-cache"
@@ -283,6 +312,7 @@ export AWS_CACHE_STATS=true
 ```
 
 #### 共有環境
+
 ```bash
 # 容量制限厳格
 export AWS_CACHE_DIR="$HOME/.cache/aws-cli"
@@ -301,9 +331,9 @@ export AWS_CACHE_STATS=false
 
 以下のアクションは自動的にキャッシュから除外されます：
 
-- **Create系**: `create-*`, `run-*`
-- **Update系**: `modify-*`, `update-*`
-- **Delete系**: `delete-*`, `terminate-*`
+- **Create 系**: `create-*`, `run-*`
+- **Update 系**: `modify-*`, `update-*`
+- **Delete 系**: `delete-*`, `terminate-*`
 - **実行系**: `invoke`, `publish`, `send-*`
 
 ### カスタム除外ルールの追加
@@ -323,19 +353,19 @@ vim ~/.config/aws-cli/cache-exclude
 ```
 
 **設定ファイル形式**:
+
 ```
 # コメント行
 service:action
 cloudwatch:get-metric-data
 s3:*
-*:list-*
 ```
 
 ---
 
 ## 実用例
 
-### 例1: ダッシュボードスクリプト
+### 例 1: ダッシュボードスクリプト
 
 ```bash
 #!/bin/bash
@@ -352,7 +382,7 @@ echo "=== S3 Buckets ==="
 aws_cached s3 ls
 ```
 
-### 例2: 監視スクリプト
+### 例 2: 監視スクリプト
 
 ```bash
 #!/bin/bash
@@ -363,13 +393,13 @@ aws_cached --cache-ttl 60 cloudwatch get-metric-statistics \
     --namespace AWS/RDS \
     --metric-name CPUUtilization \
     --dimensions Name=DBClusterIdentifier,Value=my-cluster \
-    --start-time $(date -u -d '5 minutes ago' +%Y-%m-%dT%H:%M:%S) \
+    --start-time $(date -u -v-5M +%Y-%m-%dT%H:%M:%S) \
     --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
     --period 300 \
     --statistics Average
 ```
 
-### 例3: デプロイスクリプト
+### 例 3: デプロイスクリプト
 
 ```bash
 #!/bin/bash
@@ -391,7 +421,7 @@ aws_cached --force-refresh rds describe-db-clusters \
     --db-cluster-identifier my-cluster
 ```
 
-### 例4: 並行実行
+### 例 4: 並行実行
 
 ```bash
 #!/bin/bash
@@ -415,15 +445,18 @@ echo "All regions checked!"
 
 ### キャッシュが効かない
 
-**症状**: 毎回AWS APIが呼ばれる
+**症状**: 毎回 AWS API が呼ばれる
 
 **確認事項**:
+
 1. `--verbose` オプションで確認
+
    ```bash
    aws_cached --verbose rds describe-db-clusters
    ```
 
 2. 除外ルールを確認
+
    ```bash
    ./aws_cache.sh excludes
    ```
@@ -438,6 +471,7 @@ echo "All regions checked!"
 **症状**: 古いデータが返される
 
 **解決方法**:
+
 ```bash
 # 強制リフレッシュ
 aws_cached --force-refresh rds describe-db-clusters
@@ -451,6 +485,7 @@ aws_cached --force-refresh rds describe-db-clusters
 **症状**: キャッシュファイルが作成されない
 
 **解決方法**:
+
 ```bash
 # 期限切れキャッシュを削除
 ./aws_cache.sh clean
@@ -467,12 +502,15 @@ export AWS_CACHE_MAX_SIZE=536870912  # 512MB
 **症状**: キャッシュヒット時も遅い
 
 **確認事項**:
+
 1. 整合性チェックを無効化
+
    ```bash
    export AWS_CACHE_VERIFY=false
    ```
 
 2. キャッシュファイル数を確認
+
    ```bash
    ./aws_cache.sh stats
    ```
@@ -511,7 +549,7 @@ export AWS_CACHE_TTL=1800
 export AWS_PROFILE=my-project
 ```
 
-### 4. CI/CDでの使用
+### 4. CI/CD での使用
 
 ```yaml
 # GitHub Actions
@@ -542,30 +580,33 @@ export AWS_CACHE_TTL=7200  # 2時間に延長
 
 ### Q: キャッシュはどこに保存されますか？
 
-A: デフォルトでは `~/.cache/aws-cli` に保存されます。`AWS_CACHE_DIR` 環境変数で変更可能です。
+A: デフォルトでは `~/.cache/aws-cli` に保存されます（XDG Base Directory 仕様に準拠）。`AWS_CACHE_DIR` 環境変数で変更可能です。
 
 ### Q: キャッシュは自動的に削除されますか？
 
-A: 期限切れのキャッシュは自動的には削除されません。`./aws_cache.sh clean` コマンドで削除してください。
+A: 期限切れのキャッシュは自動的には削除されません。`./aws_cache.sh clean` コマンドで削除してください。サイズ制限を超えた場合は LRU 方式で自動削除されます。
 
-### Q: Write操作もキャッシュされますか？
+### Q: Write 操作もキャッシュされますか？
 
-A: いいえ。Create/Update/Delete系の操作は自動的に除外されます。
+A: いいえ。Create/Update/Delete 系の操作は自動的に除外されます。
 
 ### Q: 複数のプロセスで同時に使用できますか？
 
-A: はい。並行実行に対応しています。
+A: はい。PID ベースのファイル名とアトミックな書き込み操作により、並行実行に対応しています。
 
-### Q: AWS CLI v1とv2の両方に対応していますか？
+### Q: AWS CLI v1 と v2 の両方に対応していますか？
 
-A: はい。両方に対応していますが、v2を推奨します。
+A: はい。両方に対応していますが、v2 を推奨します。
 
 ### Q: キャッシュのセキュリティは？
 
-A: ファイルはユーザーディレクトリに保存され、デフォルトのumask設定が適用されます。より高いセキュリティが必要な場合は `AWS_CACHE_VERIFY=true` を設定してください。
+A: ファイルはユーザーディレクトリに保存され、デフォルトの umask 設定が適用されます。より高いセキュリティが必要な場合は `AWS_CACHE_VERIFY=true` を設定してください。
+
+### Q: macOS と Linux の両方で動作しますか？
+
+A: はい。v4.0.0 でクロスプラットフォーム互換性が強化され、macOS/Linux 両方で動作します。
 
 ---
 
 **作成者**: Kiro AI Assistant  
-**作成日**: 2025年11月19日  
-**バージョン**: 3.0.0
+**バージョン**: 4.0.0
