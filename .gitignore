@@ -101,6 +101,11 @@ test-results/
 coverage/
 .nyc_output/
 
+# テスト用設定ファイル（機密情報を含む）
+tests/test-config.sh
+tests/test-config.local.sh
+tests/.test-env
+
 # ===========================
 # ビルド・パッケージ
 # ===========================

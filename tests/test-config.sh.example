@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# AWS CLI Cache Test Configuration Example
+# 
+# このファイルをtest-config.shにコピーして、実際の設定値を入力してください
+# test-config.shは.gitignoreに含まれており、リポジトリにコミットされません
+#
+
+# AWS設定
+export AWS_CONFIG_FILE="/path/to/your/.aws/config"
+export AWS_PROFILE="your-aws-profile"
+
+# または、直接認証情報を設定（推奨しません）
+# export AWS_ACCESS_KEY_ID="your-access-key"
+# export AWS_SECRET_ACCESS_KEY="your-secret-key"
+
+# テスト用の追加設定
+export AWS_DEFAULT_REGION="us-east-1"
+export AWS_DEFAULT_OUTPUT="json"
+
+# テスト実行時の設定
+export AWS_CACHE_TEST_TIMEOUT=30  # テストタイムアウト（秒）
+export AWS_CACHE_TEST_RETRIES=3   # リトライ回数
+
+# デバッグ用設定（必要に応じて有効化）
+# export AWS_CLI_AUTO_PROMPT=off
+# export AWS_PAGER=""
+
+echo "AWS Test Configuration loaded:"
+echo "  Config File: $AWS_CONFIG_FILE"
+echo "  Profile: $AWS_PROFILE"
+echo "  Region: $AWS_DEFAULT_REGION"
+echo ""
