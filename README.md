@@ -40,10 +40,21 @@ cd aws-cli-cache
 
 # 実行権限を付与
 chmod +x aws_cache.sh
+```
 
-# シェル設定ファイルに追加
+#### bash ユーザー
+
+```bash
 echo 'source /path/to/aws_cache.sh' >> ~/.bashrc
 source ~/.bashrc
+```
+
+#### zsh ユーザー（macOS デフォルト）
+
+```zsh
+# エイリアスを使用（source は非対応）
+echo 'alias aws_cached="/path/to/aws_cache.sh"' >> ~/.zshrc
+source ~/.zshrc
 ```
 
 ### 基本的な使い方
@@ -177,6 +188,8 @@ export AWS_CACHE_STATS=true
 ---
 
 ## 実用例
+
+以下の例は bash スクリプト（`#!/bin/bash`）として保存して実行してください。
 
 ### ダッシュボードスクリプト
 

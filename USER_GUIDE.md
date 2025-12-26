@@ -14,14 +14,39 @@ cd aws-cli-cache
 
 # 実行権限を付与
 chmod +x aws_cache.sh
+```
 
-# シェル設定ファイルに追加
+#### bash ユーザー
+
+```bash
+# .bashrc に追加
 echo 'source /path/to/aws_cache.sh' >> ~/.bashrc
-# または
-echo 'source /path/to/aws_cache.sh' >> ~/.zshrc
 
 # 設定を再読み込み
-source ~/.bashrc  # または source ~/.zshrc
+source ~/.bashrc
+```
+
+#### zsh ユーザー（macOS デフォルト）
+
+このスクリプトは bash 固有の機能（`BASH_SOURCE`、連想配列など）を使用しているため、zsh から直接 `source` することはできません。代わりにエイリアスを使用してください。
+
+```zsh
+# .zshrc に追加
+echo 'alias aws_cached="/path/to/aws_cache.sh"' >> ~/.zshrc
+
+# 管理コマンド用のエイリアスも追加（任意）
+echo 'alias aws-cache="/path/to/aws_cache.sh"' >> ~/.zshrc
+
+# 設定を再読み込み
+source ~/.zshrc
+```
+
+**注意**: `/path/to/` は実際のインストールパスに置き換えてください。
+
+**動作確認**:
+
+```bash
+aws_cached --help
 ```
 
 ### 基本的な使い方
@@ -365,6 +390,8 @@ s3:*
 
 ## 実用例
 
+以下の例は bash スクリプト（`#!/bin/bash`）として保存して実行してください。zsh から直接 `source` することはできません。
+
 ### 例 1: ダッシュボードスクリプト
 
 ```bash
@@ -605,6 +632,10 @@ A: ファイルはユーザーディレクトリに保存され、デフォル�
 ### Q: macOS と Linux の両方で動作しますか？
 
 A: はい。v4.0.0 でクロスプラットフォーム互換性が強化され、macOS/Linux 両方で動作します。
+
+### Q: zsh から使用できますか？
+
+A: はい。ただし `source` ではなくエイリアスを使用してください。このスクリプトは bash 固有の機能（`BASH_SOURCE`、`declare -gA` など）を使用しているため、zsh から直接 source すると正しく動作しません。`.zshrc` に `alias aws_cached="/path/to/aws_cache.sh"` を追加することで、zsh からも問題なく使用できます。シェバン（`#!/usr/bin/env bash`）により、実行時は自動的に bash が使用されます。
 
 ---
 
