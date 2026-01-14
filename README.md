@@ -1,6 +1,6 @@
 # AWS CLI Cache
 
-[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](https://github.com/hacker65536/aws-cli-cache/releases)
+[![Version](https://img.shields.io/badge/version-4.1.1-blue.svg)](https://github.com/hacker65536/aws-cli-cache/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Shell](https://img.shields.io/badge/shell-bash%204.0%2B-orange.svg)](https://www.gnu.org/software/bash/)
 [![Tests](https://img.shields.io/badge/tests-30%2F30%20passing-brightgreen.svg)](test_cache.sh)
@@ -9,10 +9,10 @@
 
 AWS CLI の API コール回数を削減するためのキャッシュレイヤー。TTL ベースの有効期限管理、LRU 削除、整合性検証をサポートし、本番環境での使用に最適化されています。
 
-**バージョン**: 3.1.1  
-**最終更新**: 2025 年 12 月 18 日
+**バージョン**: 4.1.1  
+**最終更新**: 2026 年 1 月 14 日
 
-> **🔴 重要**: v3.1.1 でキャッシュヒット率 0%問題を修正しました。v3.0.0 以前をご利用の方は、できるだけ早くアップグレードしてください。詳細は[リリースノート](https://github.com/hacker65536/aws-cli-cache/releases/tag/v3.1.1)をご確認ください。
+> **✨ 新機能**: v4.1.1 でキャッシュ共有の問題を修正し、リージョン解決を約 16 倍高速化しました。詳細は[リリースノート](https://github.com/hacker65536/aws-cli-cache/releases/tag/v4.1.1)をご確認ください。
 
 ---
 
@@ -73,12 +73,17 @@ aws rds describe-db-clusters
 ## パフォーマンス
 
 ```
-通常のAWS CLI:     657ms  (100%)
-初回実行:          326ms  ( 50%)
-2回目以降:         299ms  ( 45%)
+通常のAWS CLI:     2000ms  (100%)
+初回実行:          2012ms  (101%) - リージョン解決: 12ms
+2回目以降:           42ms  (  2%) - キャッシュヒット
 
-高速化率: 約2.2倍
+高速化率: 約2.2倍（初回）、約48倍（キャッシュヒット時）
 ```
+
+### v4.1.1 での改善
+
+- **リージョン解決**: 200ms → 12ms（約 16 倍高速化）
+- **キャッシュ共有**: `--region` オプションの有無に関わらず同じキャッシュを使用
 
 ---
 
@@ -175,6 +180,11 @@ export AWS_CACHE_STATS=true
 
 ### 詳細ドキュメント（docs/）
 
+- **[CACHE_MECHANISM.md](docs/CACHE_MECHANISM.md)** - キャッシュ機構の詳細説明
+  - パラメータ抽出とハッシュ生成
+  - キャッシュヒット判定の仕組み
+  - リージョン解決の優先順位
+  - パフォーマンス比較
 - **[IMPROVEMENTS.md](docs/IMPROVEMENTS.md)** - 初期改善内容
 - **[IMPROVEMENTS_V2.md](docs/IMPROVEMENTS_V2.md)** - v2.0 改善内容
 - **[NAMING_REVIEW.md](docs/NAMING_REVIEW.md)** - 命名規則レビュー
@@ -395,4 +405,4 @@ Pull Requests 歓迎！
 
 **作成者**: Kiro AI Assistant  
 **作成日**: 2025 年 11 月 19 日  
-**バージョン**: 3.1.1
+**バージョン**: 4.1.1
