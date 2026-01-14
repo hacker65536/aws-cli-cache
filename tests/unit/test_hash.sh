@@ -88,16 +88,21 @@ test_generate_params_hash() {
 test_generate_cache_key() {
     echo "--- generate_cache_key ---"
     
-    local key1 key2 key3
+    local key1 key2 key3 key4 key5
     
     # Same command should produce same key
-    key1=$(generate_cache_key "rds describe-db-clusters --profile test")
-    key2=$(generate_cache_key "rds describe-db-clusters --profile test")
+    key1=$(generate_cache_key "rds describe-db-clusters --db-cluster-identifier cluster1")
+    key2=$(generate_cache_key "rds describe-db-clusters --db-cluster-identifier cluster1")
     assert_equals "$key1" "$key2" "same command produces same key"
     
     # Different command should produce different key
-    key3=$(generate_cache_key "rds describe-db-clusters --profile other")
+    key3=$(generate_cache_key "rds describe-db-clusters --db-cluster-identifier cluster2")
     assert_not_equals "$key1" "$key3" "different command produces different key"
+    
+    # --region, --profile, --output should be excluded (same key)
+    key4=$(generate_cache_key "rds describe-db-clusters --region us-east-1 --db-cluster-identifier cluster1")
+    key5=$(generate_cache_key "rds describe-db-clusters --db-cluster-identifier cluster1")
+    assert_equals "$key4" "$key5" "--region is excluded from cache key"
     
     # Key should be 64 characters (full SHA256)
     if [[ ${#key1} -eq 64 ]]; then

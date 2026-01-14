@@ -124,6 +124,7 @@ load_profile_region_cache() {
 
 #######################################
 # Get region for a specific profile from cache.
+# Uses lazy loading with optimized search for large config files.
 # Globals:
 #   _PROFILE_REGION_CACHE
 # Arguments:
@@ -136,13 +137,57 @@ load_profile_region_cache() {
 get_profile_region() {
     local profile="$1"
     
-    # Ensure cache is loaded
-    load_profile_region_cache
+    # Check if already cached
+    if [[ -n "${_PROFILE_REGION_CACHE[$profile]:-}" ]]; then
+        echo "${_PROFILE_REGION_CACHE[$profile]}"
+        return 0
+    fi
     
-    local region="${_PROFILE_REGION_CACHE[$profile]:-}"
+    # Lazy load: search for specific profile only
+    local config_file
+    config_file=$(get_aws_config_file)
+    [[ ! -f "$config_file" ]] && return 1
     
-    if [[ -n "$region" ]]; then
-        echo "$region"
+    # Use awk for fast profile-specific search
+    # Escape special characters in profile name for regex
+    local escaped_profile="${profile//\\/\\\\}"
+    escaped_profile="${escaped_profile//\[/\\[}"
+    escaped_profile="${escaped_profile//\]/\\]}"
+    escaped_profile="${escaped_profile//\./\\.}"
+    escaped_profile="${escaped_profile//\*/\\*}"
+    escaped_profile="${escaped_profile//\^/\\^}"
+    escaped_profile="${escaped_profile//\$/\\$}"
+    
+    local found_region
+    if [[ "$profile" == "default" ]]; then
+        found_region=$(awk '
+            /^\[default\]/ { in_section=1; next }
+            /^\[/ { in_section=0 }
+            in_section && /^[[:space:]]*region[[:space:]]*=/ {
+                sub(/^[[:space:]]*region[[:space:]]*=[[:space:]]*/, "")
+                sub(/[[:space:]]*$/, "")
+                print
+                exit
+            }
+        ' "$config_file")
+    else
+        found_region=$(awk -v prof="$escaped_profile" '
+            BEGIN { pattern = "^\\[profile[[:space:]]+" prof "\\]$" }
+            $0 ~ pattern { in_section=1; next }
+            /^\[/ { in_section=0 }
+            in_section && /^[[:space:]]*region[[:space:]]*=/ {
+                sub(/^[[:space:]]*region[[:space:]]*=[[:space:]]*/, "")
+                sub(/[[:space:]]*$/, "")
+                print
+                exit
+            }
+        ' "$config_file")
+    fi
+    
+    if [[ -n "$found_region" ]]; then
+        # Cache it
+        _PROFILE_REGION_CACHE["$profile"]="$found_region"
+        echo "$found_region"
         return 0
     fi
     

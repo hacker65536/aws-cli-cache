@@ -35,6 +35,7 @@ generate_params_hash() {
 
 #######################################
 # Generate cache key from full command.
+# Excludes --region, --profile, --output from hash.
 # Arguments:
 #   Command line arguments
 # Outputs:
@@ -44,7 +45,14 @@ generate_params_hash() {
 #######################################
 generate_cache_key() {
     local cmd="$*"
+    
+    # sedを使用して確実にオプションと値を除外
+    local params
+    params=$(echo "$cmd" | sed -E 's/--region[[:space:]]+[^[:space:]]+//g; s/--profile[[:space:]]+[^[:space:]]+//g; s/--output[[:space:]]+[^[:space:]]+//g')
+    # 余分な空白を削除
+    params=$(echo "$params" | tr -s ' ' | sed 's/^ //; s/ $//')
+    
     local hash
-    hash=$(echo -n "$cmd" | shasum -a 256)
+    hash=$(echo -n "$params" | shasum -a 256)
     echo "${hash%% *}"
 }
