@@ -271,12 +271,19 @@ aws_cached [options] <aws-cli-command>
 
 ### Shell 互換性
 
-| Shell     | 対応状況    | 備考          |
-| --------- | ----------- | ------------- |
-| Bash 4.0+ | ✅ 推奨     | 完全対応      |
-| Bash 3.2+ | ⚠️ 制限あり | 一部機能制限  |
-| Zsh       | ✅ 完全対応 | テスト済み    |
-| Dash      | ❌ 非対応   | Bash 拡張使用 |
+| Shell     | 対応状況    | 備考                                   |
+| --------- | ----------- | -------------------------------------- |
+| Bash 4.0+ | ✅ 推奨     | 完全対応・テスト済み                   |
+| Bash 3.2+ | ⚠️ 制限あり | 一部機能制限（連想配列非対応）         |
+| Zsh 5.0+  | ✅ 完全対応 | テスト済み・macOS デフォルトシェル対応 |
+| Dash      | ❌ 非対応   | Bash/Zsh 固有機能使用                  |
+
+**シェル互換性の実装**:
+
+- スクリプトパス解決: bash は `BASH_SOURCE`、zsh は `${(%):-%x}` を使用
+- Source 判定: bash は `BASH_SOURCE[0] == $0`、zsh は `ZSH_EVAL_CONTEXT` を使用
+- POSIX 準拠: GNU 固有機能を避け、macOS/Linux 両対応
+- 詳細は `.kiro/steering/platform-compatibility.md` を参照
 
 ### AWS CLI 互換性
 

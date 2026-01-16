@@ -74,5 +74,5 @@ service:*         # サービス全体
 ## 互換性
 
 - OS: macOS, Linux
-- Shell: bash 4.0+
+- Shell: bash 4.0+ | zsh 5.0+
 - AWS CLI: v1.x, v2.x

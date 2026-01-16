@@ -77,8 +77,23 @@ clean_expired_cache() {
     local count=0
     local freed_size=0
     
+    #######################################
+    # Get script path in bash/zsh compatible way.
+    # Returns:
+    #   Script path
+    #######################################
+    _get_script_path_limits() {
+        if [ -n "${ZSH_VERSION:-}" ]; then
+            echo "${(%):-%x}"
+        elif [ -n "${BASH_SOURCE[0]:-}" ]; then
+            echo "${BASH_SOURCE[0]}"
+        else
+            echo "${0}"
+        fi
+    }
+    
     # Source extract module for TTL extraction
-    local lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local lib_dir="$(cd "$(dirname "$(_get_script_path_limits)")" && pwd)"
     source "${lib_dir}/extract.sh"
     
     while IFS= read -r -d '' cache_file; do

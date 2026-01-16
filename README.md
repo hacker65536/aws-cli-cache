@@ -1,16 +1,16 @@
 # AWS CLI Cache
 
-[![Version](https://img.shields.io/badge/version-4.1.1-blue.svg)](https://github.com/hacker65536/aws-cli-cache/releases)
+[![Version](https://img.shields.io/badge/version-4.2.0-blue.svg)](https://github.com/hacker65536/aws-cli-cache/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Shell](https://img.shields.io/badge/shell-bash%204.0%2B-orange.svg)](https://www.gnu.org/software/bash/)
+[![Shell](https://img.shields.io/badge/shell-bash%204.0%2B%20%7C%20zsh%205.0%2B-orange.svg)](https://www.gnu.org/software/bash/)
 [![Tests](https://img.shields.io/badge/tests-30%2F30%20passing-brightgreen.svg)](test_cache.sh)
 [![Google Style](https://img.shields.io/badge/style-Google%20Shell%20Guide-yellow.svg)](https://google.github.io/styleguide/shellguide.html)
 [![Performance](https://img.shields.io/badge/performance-2.2x%20faster-success.svg)](#パフォーマンス)
 
 AWS CLI の API コール回数を削減するためのキャッシュレイヤー。TTL ベースの有効期限管理、LRU 削除、整合性検証をサポートし、本番環境での使用に最適化されています。
 
-**バージョン**: 4.1.1  
-**最終更新**: 2026 年 1 月 14 日
+**バージョン**: 4.2.0  
+**最終更新**: 2026 年 1 月 16 日
 
 > **✨ 新機能**: v4.1.1 でキャッシュ共有の問題を修正し、リージョン解決を約 16 倍高速化しました。詳細は[リリースノート](https://github.com/hacker65536/aws-cli-cache/releases/tag/v4.1.1)をご確認ください。
 
@@ -52,8 +52,7 @@ source ~/.bashrc
 #### zsh ユーザー（macOS デフォルト）
 
 ```zsh
-# エイリアスを使用（source は非対応）
-echo 'alias aws_cached="/path/to/aws_cache.sh"' >> ~/.zshrc
+echo 'source /path/to/aws_cache.sh' >> ~/.zshrc
 source ~/.zshrc
 ```
 
@@ -199,38 +198,19 @@ export AWS_CACHE_STATS=true
 
 ## 実用例
 
-以下の例は bash スクリプト（`#!/bin/bash`）として保存して実行してください。
-
-### ダッシュボードスクリプト
-
 ```bash
-#!/bin/bash
-source /path/to/aws_cache.sh
-
-echo "=== RDS Clusters ==="
+# ダッシュボードスクリプト
 aws_cached rds describe-db-clusters
-
-echo "=== EC2 Instances ==="
 aws_cached ec2 describe-instances
 
-echo "=== S3 Buckets ==="
-aws_cached s3 ls
-```
-
-### 並行実行
-
-```bash
-#!/bin/bash
-source /path/to/aws_cache.sh
-
-# 複数のリージョンを並行処理
+# 並行実行
 for region in us-east-1 us-west-2 ap-northeast-1; do
-    (
-        aws_cached --region $region ec2 describe-instances
-    ) &
+    (aws_cached --region $region ec2 describe-instances) &
 done
 wait
 ```
+
+詳細な実用例は **[USER_GUIDE.md](USER_GUIDE.md#実用例)** を参照してください。
 
 ---
 
@@ -252,15 +232,25 @@ wait
 
 ### 必須
 
-- Bash 4.0+
+- Bash 4.0+ または Zsh 5.0+
 - AWS CLI (v1 or v2)
 - 標準 Unix コマンド（find, grep, sed, awk, shasum, du）
 
 ### 対応 OS
 
-- ✅ macOS
-- ✅ Linux
-- ⚠️ Windows (WSL)
+- ✅ macOS (bash/zsh)
+- ✅ Linux (bash/zsh)
+- ⚠️ Windows (WSL with bash/zsh)
+
+### シェル互換性
+
+このプロジェクトは bash と zsh の両方で動作するように設計されています：
+
+- **bash**: `BASH_SOURCE` を使用したスクリプトパス解決
+- **zsh**: `${(%):-%x}` と `ZSH_EVAL_CONTEXT` を使用した互換実装
+- **POSIX 準拠**: GNU 固有機能を避け、macOS/Linux 両対応
+
+詳細は `.kiro/steering/platform-compatibility.md` を参照してください。
 
 ---
 
@@ -308,64 +298,35 @@ export AWS_CACHE_MAX_FILES=5000
 
 ## トラブルシューティング
 
-### キャッシュが効かない
-
 ```bash
 # デバッグ情報を表示
 aws_cached --verbose rds describe-db-clusters
 
-# 除外ルールを確認
-./aws_cache.sh excludes
-```
-
-### キャッシュが古い
-
-```bash
 # 強制リフレッシュ
 aws_cached --force-refresh rds describe-db-clusters
 
-# または特定のキャッシュをクリア
-./aws_cache.sh clear my-profile/rds
-```
-
-### ディスク容量不足
-
-```bash
 # 期限切れキャッシュを削除
 ./aws_cache.sh clean
-
-# またはすべてクリア
-./aws_cache.sh clear all
 ```
+
+詳細なトラブルシューティングは **[USER_GUIDE.md](USER_GUIDE.md#トラブルシューティング)** を参照してください。
 
 ---
 
 ## ベストプラクティス
 
-### 1. エイリアスの設定
-
 ```bash
+# エイリアスの設定
 alias aws=aws_cached
-alias awsf='aws_cached --force-refresh'
-alias awsv='aws_cached --verbose'
-```
 
-### 2. 定期的なクリーンアップ
-
-```bash
-# crontab -e
+# 定期的なクリーンアップ（crontab）
 0 3 * * * /path/to/aws_cache.sh clean
-```
 
-### 3. 統計の活用
-
-```bash
-# 定期的にヒット率を確認
+# 統計の活用
 ./aws_cache.sh metrics
-
-# ヒット率が低い場合はTTLを調整
-export AWS_CACHE_TTL=7200  # 2時間に延長
 ```
+
+詳細なベストプラクティスは **[USER_GUIDE.md](USER_GUIDE.md#ベストプラクティス)** を参照してください。
 
 ---
 
@@ -380,8 +341,7 @@ A: いいえ。Create/Update/Delete 系の操作は自動的に除外されま�
 **Q: 複数のプロセスで同時に使用できますか？**  
 A: はい。並行実行に対応しています。
 
-**Q: AWS CLI v1 と v2 の両方に対応していますか？**  
-A: はい。両方に対応していますが、v2 を推奨します。
+その他の質問は **[USER_GUIDE.md](USER_GUIDE.md#faq)** を参照してください。
 
 ---
 
@@ -405,4 +365,4 @@ Pull Requests 歓迎！
 
 **作成者**: Kiro AI Assistant  
 **作成日**: 2025 年 11 月 19 日  
-**バージョン**: 4.1.1
+**バージョン**: 4.2.0

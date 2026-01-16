@@ -1,7 +1,17 @@
 # AWS CLI Cache - 利用ガイド
 
-**バージョン**: 4.0.0  
-**最終更新**: 2025 年 12 月 19 日
+**バージョン**: 4.2.0  
+**最終更新**: 2026 年 1 月 16 日
+
+## 対応環境
+
+- **シェル**: Bash 4.0+ | Zsh 5.0+
+- **OS**: macOS (BSD) | Linux (GNU)
+- **AWS CLI**: v1.x | v2.x
+
+このツールは bash と zsh の両方で動作します。macOS のデフォルトシェル（zsh）でも問題なく使用できます。
+
+---
 
 ## クイックスタート
 
@@ -28,14 +38,9 @@ source ~/.bashrc
 
 #### zsh ユーザー（macOS デフォルト）
 
-このスクリプトは bash 固有の機能（`BASH_SOURCE`、連想配列など）を使用しているため、zsh から直接 `source` することはできません。代わりにエイリアスを使用してください。
-
 ```zsh
 # .zshrc に追加
-echo 'alias aws_cached="/path/to/aws_cache.sh"' >> ~/.zshrc
-
-# 管理コマンド用のエイリアスも追加（任意）
-echo 'alias aws-cache="/path/to/aws_cache.sh"' >> ~/.zshrc
+echo 'source /path/to/aws_cache.sh' >> ~/.zshrc
 
 # 設定を再読み込み
 source ~/.zshrc
@@ -390,7 +395,7 @@ s3:*
 
 ## 実用例
 
-以下の例は bash スクリプト（`#!/bin/bash`）として保存して実行してください。zsh から直接 `source` することはできません。
+以下の例はシェルスクリプトとして保存して実行できます。bash と zsh の両方に対応しています。
 
 ### 例 1: ダッシュボードスクリプト
 
@@ -635,9 +640,9 @@ A: はい。v4.0.0 でクロスプラットフォーム互換性が強化され�
 
 ### Q: zsh から使用できますか？
 
-A: はい。ただし `source` ではなくエイリアスを使用してください。このスクリプトは bash 固有の機能（`BASH_SOURCE`、`declare -gA` など）を使用しているため、zsh から直接 source すると正しく動作しません。`.zshrc` に `alias aws_cached="/path/to/aws_cache.sh"` を追加することで、zsh からも問題なく使用できます。シェバン（`#!/usr/bin/env bash`）により、実行時は自動的に bash が使用されます。
+A: はい。v4.1.1 以降、bash と zsh の両方で完全にサポートされています。`.zshrc` に `source /path/to/aws_cache.sh` を追加するだけで使用できます。
 
 ---
 
 **作成者**: Kiro AI Assistant  
-**バージョン**: 4.0.0
+**バージョン**: 4.2.0

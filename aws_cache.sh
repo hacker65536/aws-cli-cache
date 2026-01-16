@@ -17,8 +17,23 @@
 #   AWS_CACHE_VERIFY    - Enable integrity check (default: false)
 #   AWS_CACHE_STATS     - Enable statistics recording (default: false)
 
+#######################################
+# Get script path in bash/zsh compatible way.
+# Returns:
+#   Script path
+#######################################
+_get_script_path() {
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        echo "${(%):-%x}"
+    elif [ -n "${BASH_SOURCE[0]:-}" ]; then
+        echo "${BASH_SOURCE[0]}"
+    else
+        echo "${0}"
+    fi
+}
+
 # Determine library directory
-_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_SCRIPT_DIR="$(cd "$(dirname "$(_get_script_path)")" && pwd)"
 _LIB_DIR="${_SCRIPT_DIR}/lib"
 
 # Source all modules
@@ -91,6 +106,18 @@ main() {
 }
 
 # Run main only when executed directly (not sourced)
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
+# In bash: BASH_SOURCE[0] != $0 when sourced
+# In zsh: ZSH_EVAL_CONTEXT contains "file" when sourced
+if [ -n "${BASH_VERSION:-}" ]; then
+    # Bash: check if BASH_SOURCE[0] equals $0
+    if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+        main "$@"
+    fi
+elif [ -n "${ZSH_VERSION:-}" ]; then
+    # Zsh: check ZSH_EVAL_CONTEXT
+    # When sourced: contains "file"
+    # When executed: "toplevel"
+    if [[ "${ZSH_EVAL_CONTEXT:-}" == "toplevel" ]]; then
+        main "$@"
+    fi
 fi

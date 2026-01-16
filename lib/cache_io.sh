@@ -8,8 +8,23 @@
 [[ -n "${_AWS_CACHE_IO_LOADED:-}" ]] && return 0
 readonly _AWS_CACHE_IO_LOADED=1
 
+#######################################
+# Get script path in bash/zsh compatible way.
+# Returns:
+#   Script path
+#######################################
+_get_script_path_io() {
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        echo "${(%):-%x}"
+    elif [ -n "${BASH_SOURCE[0]:-}" ]; then
+        echo "${BASH_SOURCE[0]}"
+    else
+        echo "${0}"
+    fi
+}
+
 # Source dependencies
-_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_LIB_DIR="$(cd "$(dirname "$(_get_script_path_io)")" && pwd)"
 source "${_LIB_DIR}/config.sh"
 source "${_LIB_DIR}/extract.sh"
 source "${_LIB_DIR}/hash.sh"

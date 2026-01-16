@@ -1,5 +1,120 @@
 # AWS CLI Cache - 変更履歴
 
+## バージョン 4.2.0 (2026-01-16)
+
+### ✨ 新機能
+
+#### bash/zsh 完全互換性の実装
+
+bash と zsh の両方で完全に動作するように実装を改善しました。
+
+**実装内容**:
+
+- すべてのモジュールに `_get_script_path()` ヘルパー関数を追加
+- bash: `BASH_SOURCE` を使用したスクリプトパス解決
+- zsh: `${(%):-%x}` と `ZSH_EVAL_CONTEXT` を使用した互換実装
+- source 検出の実装:
+  - bash: `BASH_SOURCE[0] == $0` で判定
+  - zsh: `ZSH_EVAL_CONTEXT` で判定
+
+**効果**:
+
+- `.bashrc` / `.zshrc` から `source` で読み込み可能
+- 両シェルで構文チェック合格 (`bash -n` / `zsh -n`)
+- 全ユニットテスト合格 (17/17)
+
+**対応モジュール**:
+
+- `aws_cache.sh`
+- `lib/core.sh`
+- `lib/cache_io.sh`
+- `lib/extract.sh`
+- `lib/limits.sh`
+- `lib/profile_region.sh`
+
+---
+
+### 📚 ドキュメント整理
+
+#### README.md と USER_GUIDE.md の役割明確化
+
+ドキュメントの重複を削減し、役割を明確化しました。
+
+**README.md の変更**:
+
+- クイックリファレンスとして簡潔化（約 200 行削減）
+- 実用例、トラブルシューティング、ベストプラクティス、FAQ を簡略化
+- 詳細情報は USER_GUIDE.md へリンク
+
+**USER_GUIDE.md の変更**:
+
+- 詳細ガイドとして完全な情報を提供
+- zsh の誤った説明を修正（v4.1.1 で完全サポート済み）
+- バージョン情報を更新
+
+**効果**:
+
+- README: 概要とクイックスタート（初めてのユーザー向け）
+- USER_GUIDE: 詳細な使用方法とベストプラクティス（実用ユーザー向け）
+- 重複を最小化しつつ、必要な情報へのアクセスを容易に
+
+---
+
+### 📝 新規ドキュメント
+
+#### SHELL_COMPATIBILITY.md
+
+シェル互換性の詳細説明を追加:
+
+- bash と zsh の違い
+- 実装方法の詳細
+- スクリプトパス解決の仕組み
+- source 検出の仕組み
+
+#### verify_compatibility.sh
+
+両シェルでの動作検証スクリプトを追加:
+
+- 構文チェック (bash -n / zsh -n)
+- ユニットテストの実行
+- 互換性の自動検証
+
+---
+
+### 🔧 変更ファイル
+
+**コア実装**:
+
+- `aws_cache.sh`
+- `lib/core.sh`
+- `lib/cache_io.sh`
+- `lib/extract.sh`
+- `lib/limits.sh`
+- `lib/profile_region.sh`
+
+**ドキュメント**:
+
+- `README.md`
+- `USER_GUIDE.md`
+- `SPECIFICATION.md`
+- `.kiro/steering/aws-cache-specifications.md`
+- `SHELL_COMPATIBILITY.md` (新規)
+- `verify_compatibility.sh` (新規)
+
+**削除**:
+
+- `test_cache.sh` (tests/ 配下に統合済み)
+
+---
+
+### 🧪 テスト
+
+- 構文チェック: bash -n ✓ / zsh -n ✓
+- ユニットテスト: 17/17 合格
+- 互換性検証: verify_compatibility.sh ✓
+
+---
+
 ## バージョン 4.1.1 (2026-01-14)
 
 ### 🐛 バグ修正
@@ -791,5 +906,5 @@ AWS_CACHE_STATS=true  # 統計記録を有効化
 ---
 
 **メンテナー**: Kiro AI Assistant  
-**最終更新**: 2026 年 1 月 14 日  
-**現在のバージョン**: 4.1.1
+**最終更新**: 2026 年 1 月 16 日  
+**現在のバージョン**: 4.2.0

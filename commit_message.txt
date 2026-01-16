@@ -1,0 +1,55 @@
+feat: bash/zsh完全互換性とドキュメント整理 (v4.2.0)
+
+## 主な変更
+
+### 1. bash/zsh完全互換性の実装
+
+- すべてのモジュールに`_get_script_path()`ヘルパー関数を追加
+- bash: `BASH_SOURCE`を使用したスクリプトパス解決
+- zsh: `${(%):-%x}`と`ZSH_EVAL_CONTEXT`を使用した互換実装
+- source検出: bash (`BASH_SOURCE[0] == $0`) / zsh (`ZSH_EVAL_CONTEXT`)
+- 両シェルで構文チェック合格 (bash -n / zsh -n)
+- 全ユニットテスト合格 (17/17)
+
+### 2. ドキュメント整理
+
+- README.md: クイックリファレンスとして簡潔化（約200行削減）
+  - 実用例、トラブルシューティング、ベストプラクティス、FAQを簡略化
+  - 詳細情報はUSER_GUIDE.mdへリンク
+- USER_GUIDE.md: 詳細ガイドとして完全な情報を提供
+  - zshの誤った説明を修正（v4.1.1で完全サポート済み）
+  - バージョン情報を4.1.1に更新
+- 役割の明確化: README（概要）/ USER_GUIDE（詳細）
+
+### 3. 新規ドキュメント
+
+- SHELL_COMPATIBILITY.md: シェル互換性の詳細説明
+- verify_compatibility.sh: 両シェルでの動作検証スクリプト
+
+## 変更ファイル
+
+- aws_cache.sh
+- lib/core.sh
+- lib/cache_io.sh
+- lib/extract.sh
+- lib/limits.sh
+- lib/profile_region.sh
+- README.md
+- USER_GUIDE.md
+- SPECIFICATION.md
+- .kiro/steering/aws-cache-specifications.md
+- SHELL_COMPATIBILITY.md (新規)
+- verify_compatibility.sh (新規)
+- test_cache.sh (削除: tests/配下に統合済み)
+
+## 互換性
+
+- Shell: bash 4.0+ | zsh 5.0+
+- OS: macOS (BSD) | Linux (GNU)
+- AWS CLI: v1.x | v2.x
+
+## テスト
+
+- 構文チェック: bash -n ✓ / zsh -n ✓
+- ユニットテスト: 17/17 合格
+- 互換性検証: verify_compatibility.sh ✓
